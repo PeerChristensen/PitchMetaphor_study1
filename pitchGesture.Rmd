@@ -1,0 +1,359 @@
+---
+title: 'Metaphor usage patterns: speech and gesture'
+author: "Peer Christensen"
+date: "16/10/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# FINAL ANAlYSIS MUSIC EXP DATA: GESTURE
+# PEER CHRISTENSEN
+# OCTOBER 2017
+library(data.table)
+library(ggplot2)
+library(viridis)
+library(Hmisc)
+library(plyr)
+
+setwd("/Users/peerchristensen/Desktop/Data")
+df_full= read.csv2("all_data_CLEAN.csv",na.strings = c(""),stringsAsFactors = F)
+df_fullG= read.csv2("all_gesture_data_CLEAN.csv",na.strings = c(""),stringsAsFactors = F)
+#remove some columns
+df=df_full[!duplicated(df_full), ]
+
+dfG=df_fullG[,-c(1,3,6,14:18)]
+dfG=dfG[!duplicated(dfG), ]
+
+dfG$Language=factor(dfG$Language)
+dfG$File=factor(dfG$File)
+dfG$Scope=factor(dfG$Scope)
+dfG$Gesture=factor(dfG$Gesture)
+dfG$Handshape=factor(dfG$Handshape)
+dfG$Dimension=factor(dfG$Dimension)
+
+#select colors for plots
+cols_1=viridis(10)[7]
+cols_2=viridis(6)[c(2,6)]
+cols_4=viridis(10)[c(2,5,8,10)]
+cols_5=viridis(10)[c(2,4,7,9,10)]
+
+### 1. N Observations ###
+# Total observations with gesture
+nrow(dfG)
+# By language
+table(dfG$Language)
+
+### 2. Metaphors and gesture elicitation ###
+
+# Swedish
+dfS=df[df$Language=="Swedish",]
+dfSG=dfG[dfG$Language=="Swedish",]
+dfSGprop= data.frame(table(dfSG$Scope),table(dfS$Scope))
+dfSGprop$prop=dfSGprop[,2] / dfSGprop[,4]
+barplot(dfSGprop[,5],names.arg = dfSGprop[,1],col="#21908CFF",ylim=c(0,1))
+
+# Turkish
+dfT=df[df$Language=="Turkish",]
+dfTG=dfG[dfG$Language=="Turkish",]
+dfTGprop= data.frame(table(dfTG$Scope),table(dfT$Scope))
+dfTGprop$prop=dfTGprop[,2] / dfTGprop[,4]
+barplot(dfTGprop[,5],names.arg = dfTGprop[,1],col= "#21908CFF",ylim=c(0,1))
+
+### 3. Lemmata and gesture elicitation ###
+wordsLem=df[,c(8,9,19)]
+wordsLem$Lem=revalue(df$Words, c("ljusare"="bright","lägre"="low","djupa"="deep",
+                                       "högre"="high","mörkare"="dark",
+                                       "ljus"="bright","ljust"="bright","ljusa"="bright",
+                                       "mörk"="dark","mörka"="dark","mörkt"="dark",
+                                       "hög"="high","höjd"="high","högt"="high","höga"="high",
+                                       "låg"="low","lågt"="low","högre upp"="high up",
+                                       "högt upp"="high up","upp"="up","över"="over",
+                                       "under"="under","djup"="deep","första"="first",
+                                       "andra"="other","ner"="down","kalin"="thick","ince"="thin","yuksek"="high",
+                                       "inceydi"="thin","kalindi"="thick","kalinlikta"="thick",
+                                       "dusuk"="low","kalina"="thick","koyu"="dark","altan"="below",
+                                       "alcak"="low","kalinlik"="thick","inceye"="thin","tok"="full","yukariya"="high"))
+
+wordsLem=data.table(na.omit(wordsLem))
+wordsLem=wordsLem[,-1]
+
+#Swedish
+wordsLemSwe=wordsLem[wordsLem$Language=="Swedish"]
+wordsLemSweGes=wordsLemSwe[wordsLemSwe$Gesture==1,]
+wordsLemSwe=wordsLemSwe[,-1]
+wordsLemSweGes=wordsLemSweGes[,-1]
+
+wordsLemSwe[,Freq := .N, by=Lem]
+wordsLemSwe=unique(wordsLemSwe)
+wordsLemSwe=wordsLemSwe[order(-Freq)]
+wordsLemSwe=wordsLemSwe[1:5,]
+
+wordsLemSweGes[,Freq := .N, by=Lem]
+wordsLemSweGes=unique(wordsLemSweGes)
+wordsLemSweGes=wordsLemSweGes[order(-Freq)]
+wordsLemSweGes=wordsLemSweGes[1:5,]
+
+wordsLemSweDF=data.frame(wordsLemSwe,wordsLemSweGes$Freq)
+wordsLemSweDF$prop=wordsLemSweDF[,4]/wordsLemSweDF[,3]
+barplot(wordsLemSweDF$prop,names.arg = wordsLemSweDF$Lem,col="#21908CFF",ylim=c(0,1))
+
+# Turkish
+wordsLemTur=wordsLem[wordsLem$Language=="Turkish"]
+wordsLemTurGes=wordsLemTur[wordsLemTur$Gesture==1,]
+wordsLemTur=wordsLemTur[,-1]
+wordsLemTurGes=wordsLemTurGes[,-1]
+
+wordsLemTur[,Freq := .N, by=Lem]
+wordsLemTur=unique(wordsLemTur)
+wordsLemTur=wordsLemTur[order(-Freq)]
+wordsLemTur=wordsLemTur[1:5,]
+
+wordsLemTurGes[,Freq := .N, by=Lem]
+wordsLemTurGes=unique(wordsLemTurGes)
+wordsLemTurGes=wordsLemTurGes[order(-Freq)]
+wordsLemTurGes=wordsLemTurGes[1:5,]
+
+wordsLemTurDF=data.frame(wordsLemTur,wordsLemTurGes$Freq)
+wordsLemTurDF$prop=wordsLemTurDF[,4]/wordsLemTurDF[,3]
+barplot(wordsLemTurDF$prop,names.arg = wordsLemTurDF$Lem,col="#21908CFF",ylim=c(0,1))
+
+### 4. Speech-Gesture co-expressivity ###
+
+# 4.1a. Language-specific metaphors
+Cexp=subset(dfG, Language=="Swedish" & Scope=="Height" |
+              Language=="Turkish" & Scope=="Thickness")
+#create variable for co-expressivity
+Cexp$Express=factor(ifelse(Cexp$Scope=="Height" & Cexp$Dimension=="vert" |
+               Cexp$Scope=="Height" & Cexp$Handshape=="flat H" |
+               Cexp$Scope=="Height" & Cexp$Handshape=="point" |
+               Cexp$Scope=="Thickness" & Cexp$Dimension=="size" |
+               Cexp$Scope=="Thickness" & grepl("grip",Cexp$Handshape)==T,"Y","N"))
+
+#new
+labels <- c(Swedish = "Swedish - Height", Turkish = "Turkish - Thickness")
+
+#weighted
+Cexp %>%
+  group_by(Language,File,Express) %>%
+  complete(File, nesting(Express), fill = list(n = 0)) %>%
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n), wt=sum(n)) %>%
+  ddply(c("Language","Express"),summarise,
+      Freq = weighted.mean(freq,wt),
+      se = sqrt(wtd.var(freq,wt))/sqrt(length(unique(File)))) %>%
+  ggplot(aes(x=factor(Express),y=Freq,fill=factor(Express))) +
+  geom_bar(stat="identity",colour="black",size=.2) +
+  geom_errorbar(aes(ymin=Freq-se,ymax=Freq+se),width=.2) +
+  facet_wrap(~Language, labeller=labeller(Language=labels)) +
+  theme_apa(legend.pos = "none") + 
+  scale_fill_viridis_d(option = "D",alpha=.8,begin=.1,end=.95) +
+  ggtitle("Speech-gesture co-expressivity") +
+  ylab("Weighted mean proportions") +
+  xlab("Co-expressivity")
+
+#unweighted
+Cexp %>%
+  group_by(Language,File,Express) %>%
+  complete(File, nesting(Express), fill = list(n = 0)) %>%
+  summarise (n = n()) %>%
+  mutate(freq = n / sum(n)) %>%
+  ddply(c("Language","Express"),summarise,
+      Freq = mean(freq),
+      se = sqrt(sd(freq))/sqrt(length(unique(File)))) %>%
+  ggplot(aes(x=factor(Express),y=Freq,fill=factor(Express))) +
+  geom_bar(stat="identity",colour="black",size=.2) +
+  geom_errorbar(aes(ymin=Freq-se,ymax=Freq+se),width=.2) +
+  facet_wrap(~Language, labeller=labeller(Language=labels)) +
+  theme_apa(legend.pos = "none") + 
+  scale_fill_viridis_d(option = "D",alpha=.8,begin=.1,end=.95) +
+  ggtitle("Speech-gesture co-expressivity") +
+  ylab("Mean proportions") +
+  xlab("Co-expressivity")
+
+
+CexpA=ftable(Cexp$File,Cexp$Express)
+wA=rowSums(CexpA)
+CexpA=round(prop.table(as.matrix(CexpA),1),2)
+CexpA=data.frame(Participant=row.names(CexpA),CexpA,wA)
+CexpA$Language=ifelse(grepl("swe",CexpA$Participant)==T,"Swedish","Turkish")
+colnames(CexpA)[2:3] = c("N","Y")
+
+CexpA=ddply(CexpA,"Language",summarise,
+          YES= weighted.mean(Y,wA), 
+          NO=weighted.mean(N,wA),
+          Y_se=sqrt(wtd.var(Y,wA))/sqrt(nrow(CexpA)),
+          N_se=sqrt(wtd.var(N,wA))/sqrt(nrow(CexpA)))
+CexpA[,2:5]=round(CexpA[,2:5],3)
+CexpA=melt(CexpA,Language=Language)
+CexpA=data.frame(cbind(CexpA[1:4,],
+                     CexpA[5:8,2:3]))
+
+barCexpA <- ggplot(CexpA, aes(x=Language, y=value,fill=variable)) + 
+  geom_bar(position=position_dodge(),stat="identity",colour="gray30") +
+  geom_errorbar(aes(ymin=value-value.1, ymax=value+value.1), width=.2,
+                position=position_dodge(.9)) +
+  scale_fill_manual("Co-expressivity",values=cols_2) +
+  #scale_fill_viridis("Co-expressivity",discrete = TRUE, option = "D") +
+  scale_y_continuous(name="Mean Proportions", limits=c(0, 1)) +
+  scale_x_discrete(breaks=c("Swedish", "Turkish"),
+                   labels=c("Swedish\nHeight metaphor", "Turkish\nThickness metaphor")) +
+  xlab("Language group and metaphor") +
+  ggtitle("Speech-gesture co-expressivity\nof language-specific spatial metaphors") +
+  theme_minimal() +
+  theme(plot.title=element_text(lineheight=0.8,hjust=0.5,face="bold", size=20),
+        axis.title.x=element_text(face="bold",size=17), 
+        axis.text.x=element_text(size=15),
+        axis.title.y=element_text(face="bold",size=17),
+        axis.text.y=element_text(size=15))
+barCexpA
+
+
+
+# 4.1b. How co-expressivity is manifested in gesture ###
+#Method variable
+Cexp$Method[Cexp$Scope=="Height" & Cexp$Dimension=="vert" & Cexp$Handshape=="flat H"] = "both"
+Cexp$Method[Cexp$Scope=="Height" & Cexp$Dimension=="vert" & Cexp$Handshape=="point"] = "both"
+Cexp$Method[Cexp$Scope=="Height" & Cexp$Dimension=="vert" 
+            & Cexp$Handshape!="flat H" & Cexp$Handshape!="point"] = "dimension"
+Cexp$Method[Cexp$Scope=="Height" & Cexp$Dimension!="vert" & Cexp$Handshape=="flat H" |
+              Cexp$Scope=="Height" & Cexp$Dimension!="vert" & Cexp$Handshape=="point"] = "handshape"
+Cexp$Method[Cexp$Scope=="Height" & Cexp$Dimension!="vert" & Cexp$Handshape!="flat H" & 
+              Cexp$Handshape=="point"] = "none"
+
+Cexp$Method[Cexp$Scope=="Thickness" & Cexp$Dimension=="size" & grepl("grip",Cexp$Handshape)==T] = "both"
+Cexp$Method[Cexp$Scope=="Thickness" & Cexp$Dimension=="size" & grepl("grip",Cexp$Handshape)==F] = "dimension"
+Cexp$Method[Cexp$Scope=="Thickness" & Cexp$Dimension!="size"& grepl("grip",Cexp$Handshape)==T] = "handshape"
+Cexp$Method[Cexp$Scope=="Thickness" & Cexp$Dimension!="size"& grepl("grip",Cexp$Handshape)==F] = "none"
+
+CexpB=ftable(Cexp$File,Cexp$Method)
+wB=rowSums(CexpB)
+CexpB=round(prop.table(as.matrix(CexpB),1),2)
+CexpB=na.omit(data.frame(Participant=row.names(CexpB),CexpB,wB))
+CexpB$Language=ifelse(grepl("swe",CexpB$Participant)==T,"Swedish","Turkish")
+
+CexpB=ddply(CexpB,"Language",summarise,
+            Both= weighted.mean(both,wB), 
+            Dimension=weighted.mean(dimension,wB),
+            Handshape=weighted.mean(handshape,wB),
+            None=weighted.mean(none,wB),
+            B_se=sqrt(wtd.var(both,wB))/sqrt(nrow(CexpB)),
+            D_se=sqrt(wtd.var(dimension,wB))/sqrt(nrow(CexpB)),
+            H_se=sqrt(wtd.var(handshape,wB))/sqrt(nrow(CexpB)),
+            N_se=sqrt(wtd.var(none,wB))/sqrt(nrow(CexpB)))
+CexpB[,2:9]=round(CexpB[,2:9],3)
+CexpB=melt(CexpB,Language=Language)
+CexpB=data.frame(cbind(CexpB[1:8,],
+                       CexpB[9:16,2:3]))
+
+# side-by-side bars
+barCexpB <- ggplot(CexpB, aes(x=Language, y=value,fill=variable)) + 
+  geom_bar(position=position_dodge(),stat="identity",colour="gray30") +
+  geom_errorbar(aes(ymin=value-value.1, ymax=value+value.1), width=.2,
+                position=position_dodge(.9)) +
+  #scale_fill_viridis("Gesture attribute",discrete = TRUE, option = "D") +
+  scale_fill_manual("Gesture attribute",values=cols_4) +
+  scale_y_continuous(name="Mean Proportions", limits=c(0, 1)) +
+  scale_x_discrete(breaks=c("Swedish", "Turkish"),
+                   labels=c("Swedish\nHeight metaphor", "Turkish\nThickness metaphor")) +
+  xlab("Language group and metaphor") +
+  ggtitle("Co-expressivity in gesture") +
+  theme_minimal() +
+  theme(plot.title=element_text(lineheight=0.8,hjust=0.5,face="bold", size=20),
+        axis.title.x=element_text(face="bold",size=17), 
+        axis.text.x=element_text(size=15),
+        axis.title.y=element_text(face="bold",size=17),
+        axis.text.y=element_text(size=15))
+barCexpB
+
+# Stacked
+barCexpBstack <- ggplot(CexpB, aes(x=Language, y=value,fill=variable)) + 
+  geom_bar(position="stack",stat="identity",colour="gray30") +
+  #scale_fill_viridis("Gesture attribute",discrete = TRUE, option = "D") +
+  scale_fill_manual("Gesture attribute",values=cols_4) +
+  scale_y_continuous(name="Mean Proportions", limits=c(0, 1)) +
+  scale_x_discrete(breaks=c("Swedish", "Turkish"),
+                   labels=c("Swedish\nHeight metaphor", "Turkish\nThickness metaphor")) +
+  xlab("Language group and metaphor") +
+  ggtitle("Co-expressivity in gesture") +
+  theme_minimal() +
+  theme(plot.title=element_text(lineheight=0.8,hjust=0.5,face="bold", size=20),
+        axis.title.x=element_text(face="bold",size=17), 
+        axis.text.x=element_text(size=15),
+        axis.title.y=element_text(face="bold",size=17),
+        axis.text.y=element_text(size=15))
+barCexpBstack
+
+# 4.2a. Vertical gestures with other metaphors (swedish-bright and turkish-thickness)
+#create variable for verticality in gesture
+Vert=dfG
+Vert$Vertical=ifelse(Vert$Dimension=="vert" | 
+                     Vert$Handshape=="flat H" |
+                     Vert$Dimension=="vert" & Vert$Handshape=="point",1,0)
+Vert=Vert[Vert$Scope!="Height",]
+Vert=subset(Vert, Language=="Swedish" & Scope=="Brightness" |
+              Language=="Turkish" & Scope=="Thickness")
+
+participants=c()
+wts=c()
+propsYes=c()
+propsNo=c()
+for (i in unique(Vert$File)){
+  dat=Vert[Vert$File==i,]
+  participants=append(participants,i)
+  dat=ftable(dat$Scope,dat$Vertical)
+  wt=rowSums(dat)
+  wts=append(wts,wt)
+  dat=round(prop.table(as.matrix(dat),1),2)
+  propsNo=append(propsNo,dat[1])
+  propsYes=append(propsYes,dat[2])
+}
+vGes=na.omit(data.frame(participants,propsNo,propsYes,wts))
+vGes$Language=ifelse(grepl("swe",vGes$participants)==T,"Swedish","Turkish")
+
+vGes=ddply(vGes,"Language",summarise,
+            YES= weighted.mean(propsYes,wts), 
+            NO=weighted.mean(propsNo,wts),
+            Y_se=sqrt(wtd.var(propsYes,wts))/sqrt(nrow(vGes)),
+            N_se=sqrt(wtd.var(propsNo,wts))/sqrt(nrow(vGes)))
+
+vGes[,2:5]=round(vGes[,2:5],3)
+
+vGes=melt(vGes,Language=Language)
+vGes=data.frame(cbind(vGes[1:4,],
+                       vGes[5:8,2:3]))
+
+barvGes <- ggplot(vGes, aes(x=Language, y=value,fill=variable)) + 
+  geom_bar(position=position_dodge(),stat="identity",colour="gray30") +
+  geom_errorbar(aes(ymin=value-value.1, ymax=value+value.1), width=.2,
+                position=position_dodge(.9)) +
+  #scale_fill_viridis("Vertical Gesture",discrete = TRUE, option = "D") +
+  scale_fill_manual("Vertical Gesture",values=cols_2) +
+  scale_y_continuous(name="Mean Proportions", limits=c(0, 1)) +
+  scale_x_discrete(breaks=c("Swedish", "Turkish"),
+                   labels=c("Swedish\nBrightness metaphor", "Turkish\nThickness metaphor")) +
+  xlab("Language group and metaphor") +
+  ggtitle("Vertical gestures accompanying non-vertical\nmetaphors in speech") +
+  theme_minimal() +
+  theme(plot.title=element_text(lineheight=0.8,hjust=0.5,face="bold", size=20),
+        axis.title.x=element_text(face="bold",size=17), 
+        axis.text.x=element_text(size=15),
+        axis.title.y=element_text(face="bold",size=17),
+        axis.text.y=element_text(size=15))
+barvGes
+
+#TO BE ADDED!
+# 4.2b. How verticality is manifested in gesture with non-vertical metaphors
+
+
+# 4.3. Using grip with dimension
+
+
+
+
+
+```
+
