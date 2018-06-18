@@ -36,13 +36,26 @@ df$Gesture = factor(df$Gesture)
 df$Language = factor(df$Language)
 
 # create variable for co-expressivity
-
+# neutral gestures = "NO"
 df$Coexpress=factor(ifelse(df$Metaphor=="Height" & df$Dimension=="vert" |
-                             df$Metaphor=="Height" & df$Handshape=="flat H" |
-                             df$Metaphor=="Height" & df$Handshape=="point" |
+                             df$Metaphor=="Height" & df$Handshape=="flat H" & df$Dimension=="vert" |
+                             df$Metaphor=="Height" & df$Handshape=="point" & df$Dimension=="vert" |
                              df$Metaphor=="Thickness" & df$Dimension=="size" |
-                             df$Metaphor=="Thickness" & grepl("grip",df$Handshape)==T,"YES","NO"))
+                             df$Metaphor=="Thickness" & grepl("grip",df$Handshape)==T |
+                             df$Metaphor=="Thickness" & df$Dimension=="size" & grepl("grip",df$Handshape)==T,"YES","NO"))
 
+# create variable for incongruence
+# neutral gesture = "NO"
+df$incongruence=ifelse(df$Metaphor=="Height" & df$Dimension=="size" |
+                             df$Metaphor=="Height" & grepl("grip",df$Handshape)==T |
+                             df$Metaphor=="Height" & df$Dimension=="size" & grepl("grip",df$Handshape)==T |
+                             df$Metaphor=="Thickness" & df$Dimension=="vert" |
+                             df$Metaphor=="Thickness" & df$Handshape == "flat H" |
+                             df$Metaphor=="Thickness" & df$Dimension=="vert" & df$Handshape == "flat H","YES","NO")
+
+
+df$incongruence[df$incongruence=="YES" & df$Coexpress=="YES"] = "MIXED"
+df$incongruence=factor(df$incongruence)
 
 # n observations
 nrow(df)
@@ -69,8 +82,8 @@ word_counts %>%
     labels = word_counts$Word) +
   facet_wrap(~Language,scales = "free") +
   labs(x = "words", y = "frequency") +
-  coord_flip(ylim=c(0,230)) +
   my_theme() + 
+  coord_flip(ylim=c(0,230)) +
   scale_fill_viridis_d(option= "B",begin = .2, end = .7) +
   labs(title = "Word frequency grouped by metaphor")
 ######################################################
@@ -87,7 +100,7 @@ df %>%
         se = sqrt(wtd.var(freq,wt))/sqrt(length(unique(Participant)))) %>%
   filter(Freq > 0.02) %>%
   ggplot(aes(x=Metaphor,y=Freq)) +
-  geom_bar(stat="identity", fill= viridis_pal(option = "B", begin = .2, end = .7, direction = -1)(1)) +
+  geom_bar(stat="identity", fill = viridis_pal(option = "B", begin = .2, end = .7, direction = -1)(1)) +
   geom_errorbar(aes(ymin=Freq-se,ymax=Freq+se),width=.2) +
   facet_wrap(~Language, scales = "free_x") +
   my_theme() + 
@@ -135,7 +148,7 @@ df %>%
   geom_errorbar(aes(ymin=Freq-se,ymax=Freq+se),width=.2) +
   facet_wrap(~Language, labeller=labeller(Language = labels)) +
   my_theme() + 
-  ggtitle("Gestures with language-specific spatial metaphors") +
+  ggtitle("Gesture frequency with language-specific spatial metaphors") +
   ylab("Weighted mean proportions") +
   xlab("Gesture")
 
@@ -155,16 +168,16 @@ df %>%
   geom_errorbar(aes(ymin=Freq-se,ymax=Freq+se),width=.2) +
   facet_wrap(~Language, labeller=labeller(Language = labels)) +
   my_theme() + 
-  ggtitle("Gestures with language-specific spatial metaphors") +
+  ggtitle("Gesture frequency with language-specific spatial metaphors") +
   ylab("mean proportions") +
   xlab("Gesture")
 
 ######################################################
-# CO-EXPRESSIVE GESTURE FREQUENCY WITH LANGUAGE-SPECIFIC SPATIAL METAPHORS
+# FREQUENCY OF CO-EXPRESSIVE GESTURES WITH LANGUAGE-SPECIFIC SPATIAL METAPHORS
 
 # weighted
 df %>% 
-  filter(Gesture == "YES", Coexpress !="NA", Language == "Swedish" & Metaphor == "Height" |
+  filter(Gesture == "YES", !is.na(Coexpress), Language == "Swedish" & Metaphor == "Height" |
            Language == "Turkish" & Metaphor == "Thickness") %>%
   group_by(Language, Participant, Coexpress) %>%
   summarise(n = n()) %>%
@@ -184,7 +197,7 @@ df %>%
 
 # unweighted
 df %>% 
-  filter(Gesture == "YES", Coexpress !="NA", Language == "Swedish" & Metaphor == "Height" |
+  filter(Gesture == "YES", !is.na(Coexpress), Language == "Swedish" & Metaphor == "Height" |
            Language == "Turkish" & Metaphor == "Thickness") %>%
   group_by(Language, Participant, Coexpress) %>%
   summarise(n = n()) %>%
@@ -201,3 +214,49 @@ df %>%
   ggtitle("Speech-gesture co-expressivity") +
   ylab("mean proportions") +
   xlab("Co-expressivity")
+
+######################################################
+# FREQUENCY OF INCONGRUENT GESTURES WITH LANGUAGE-SPECIFIC SPATIAL METAPHORS
+df$incongruence <- factor(df$incongruence,levels = c("NO","YES","MIXED"))
+# weighted
+df %>% 
+  filter(Gesture == "YES", !is.na(incongruence), Language == "Swedish" & Metaphor == "Height" |
+           Language == "Turkish" & Metaphor == "Thickness") %>%
+  group_by(Language, Participant, incongruence) %>%
+  summarise(n = n()) %>%
+  complete(incongruence, nesting(Participant), fill = list(n = 0)) %>%
+  mutate(freq = n / sum(n), wt=sum(n)) %>%
+  plyr::ddply(c("Language","incongruence"),summarise,
+              Freq = weighted.mean(freq,wt),
+              se = sqrt(wtd.var(freq,wt))/sqrt(length(unique(Participant)))) %>%
+  ggplot(aes(x=incongruence,y=Freq)) +
+  geom_bar(stat="identity", fill= viridis_pal(option = "B", begin = .2, end = .7, direction = -1)(1)) +
+  geom_errorbar(aes(ymin=Freq-se,ymax=Freq+se),width=.2) +
+  facet_wrap(~Language, labeller=labeller(Language = labels)) +
+  my_theme() + 
+  scale_x_discrete(breaks = c("NO","YES","MIXED")) +
+  ggtitle("Speech-gesture incongruence") +
+  ylab("Weighted mean proportions") +
+  xlab("Incongruence")
+
+# unweighted
+df %>% 
+  filter(Gesture == "YES", !is.na(incongruence), Language == "Swedish" & Metaphor == "Height" |
+           Language == "Turkish" & Metaphor == "Thickness") %>%
+  group_by(Language, Participant, incongruence) %>%
+  summarise(n = n()) %>%
+  complete(incongruence, nesting(Participant), fill = list(n = 0)) %>%
+  mutate(freq = n / sum(n)) %>% 
+  plyr::ddply(c("Language","incongruence"),summarise,
+              Freq = mean(freq),
+              se = sqrt(sd(freq))/sqrt(length(unique(Participant)))) %>%
+  ggplot(aes(x=incongruence,y=Freq)) +
+  geom_bar(stat="identity", fill= viridis_pal(option = "B", begin = .2, end = .7, direction = -1)(1)) +
+  geom_errorbar(aes(ymin=Freq-se,ymax=Freq+se),width=.2) +
+  facet_wrap(~Language, labeller=labeller(Language = labels)) +
+  my_theme() + 
+  ggtitle("Speech-gesture incongruence") +
+  ylab("mean proportions") +
+  xlab("Incongruence")
+
+
