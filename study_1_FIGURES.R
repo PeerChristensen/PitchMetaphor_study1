@@ -15,9 +15,14 @@ my_theme <- function() {
     theme(plot.background = element_blank()) +
     theme(panel.border = element_blank()) +                       # facet border
     theme(strip.background = element_blank()) +                  # facet title background
-    theme(axis.text.y = element_text(size = 12)) +
-    theme(plot.margin = unit(c(.5, .5, .5, .5), "cm")) 
-}
+    theme(strip.text.x = element_text(size = 20)) +
+    theme(axis.title.x = element_text(size = 20,margin = margin(t = 25, r = 0, b = 0, l = 0))) +
+    theme(axis.title.y = element_text(size = 20,margin = margin(t = 0, r = 25, b = 0, l = 0))) +
+    theme(axis.text.y = element_text(size = 20)) +
+    theme(axis.text.x =  element_text(size = 20)) +
+    theme(panel.spacing = unit(2, "lines")) +
+    theme(plot.margin = unit(c(.5, .5, .5, .5), "cm"))
+  }
 
 df = read_csv2("all_data_CLEAN.csv")
 df = df %>% select(Participant = File, 
@@ -85,7 +90,11 @@ word_counts %>%
   my_theme() + 
   coord_flip(ylim=c(0,230)) +
   scale_fill_viridis_d(option= "B",begin = .2, end = .7) +
-  labs(title = "Word frequency grouped by metaphor")
+  theme(legend.text = element_text(size=20))
+  #labs(title = "Word frequency grouped by metaphor")
+
+ggsave("WordFrequency.png", width = 15, height=10)
+
 ######################################################
 # METAPHOR FREQUENCY BY LANGUAGE 
 
@@ -104,9 +113,11 @@ df %>%
   geom_errorbar(aes(ymin=Freq-se,ymax=Freq+se),width=.2) +
   facet_wrap(~Language, scales = "free_x") +
   my_theme() + 
-  ggtitle("Weighted distribution of speech metaphors") +
+  #ggtitle("Speech metaphors") +
   ylab("Weighted mean proportions") +
   xlab("Metaphors")
+
+ggsave("wSpeech.png", width = 10, height=10)
 
 #UNWEIGHTED   
 df %>%
@@ -123,9 +134,11 @@ df %>%
   geom_errorbar(aes(ymin=Freq-se,ymax=Freq+se),width=.2) +
   facet_wrap(~Language, scales = "free_x") +
   my_theme() +
-  ggtitle("Distribution of speech metaphors") +
+  #ggtitle("Speech metaphors") +
   ylab("Mean proportions")  +
   xlab("Metaphors")
+
+ggsave("Speech.png", width = 10, height=10)
 
 ######################################################
 # GESTURE FREQUENCY WITH LANGUAGE-SPECIFIC SPATIAL METAPHORS
@@ -148,9 +161,11 @@ df %>%
   geom_errorbar(aes(ymin=Freq-se,ymax=Freq+se),width=.2) +
   facet_wrap(~Language, labeller=labeller(Language = labels)) +
   my_theme() + 
-  ggtitle("Gesture frequency with language-specific spatial metaphors") +
+  #ggtitle("Gesture frequency with language-specific spatial metaphors") +
   ylab("Weighted mean proportions") +
   xlab("Gesture")
+
+ggsave("wGestureFrequency.png", width = 10, height=10)
 
 # unweighted
 df %>% 
@@ -168,9 +183,11 @@ df %>%
   geom_errorbar(aes(ymin=Freq-se,ymax=Freq+se),width=.2) +
   facet_wrap(~Language, labeller=labeller(Language = labels)) +
   my_theme() + 
-  ggtitle("Gesture frequency with language-specific spatial metaphors") +
+  #ggtitle("Gesture frequency with language-specific spatial metaphors") +
   ylab("mean proportions") +
   xlab("Gesture")
+
+ggsave("GestureFrequency.png", width = 10, height=10)
 
 ######################################################
 # FREQUENCY OF CO-EXPRESSIVE GESTURES WITH LANGUAGE-SPECIFIC SPATIAL METAPHORS
@@ -191,9 +208,11 @@ df %>%
   geom_errorbar(aes(ymin=Freq-se,ymax=Freq+se),width=.2) +
   facet_wrap(~Language, labeller=labeller(Language = labels)) +
   my_theme() + 
-  ggtitle("Speech-gesture coexpressivity") +
+  #ggtitle("Speech-gesture coexpressivity") +
   ylab("Weighted mean proportions") +
   xlab("Co-expressivity")
+
+ggsave("wCoexpressivity.png", width = 10, height=10)
 
 # unweighted
 df %>% 
@@ -211,13 +230,18 @@ df %>%
   geom_errorbar(aes(ymin=Freq-se,ymax=Freq+se),width=.2) +
   facet_wrap(~Language, labeller=labeller(Language = labels)) +
   my_theme() + 
-  ggtitle("Speech-gesture co-expressivity") +
+  #ggtitle("Speech-gesture co-expressivity") +
   ylab("mean proportions") +
   xlab("Co-expressivity")
 
+ggsave("Coexpressivity.png", width = 10, height=10)
+
+
 ######################################################
 # FREQUENCY OF INCONGRUENT GESTURES WITH LANGUAGE-SPECIFIC SPATIAL METAPHORS
+
 df$incongruence <- factor(df$incongruence,levels = c("NO","YES","MIXED"))
+
 # weighted
 df %>% 
   filter(Gesture == "YES", !is.na(incongruence), Language == "Swedish" & Metaphor == "Height" |
@@ -235,9 +259,11 @@ df %>%
   facet_wrap(~Language, labeller=labeller(Language = labels)) +
   my_theme() + 
   scale_x_discrete(breaks = c("NO","YES","MIXED")) +
-  ggtitle("Speech-gesture incongruence") +
+  #ggtitle("Speech-gesture incongruence") +
   ylab("Weighted mean proportions") +
   xlab("Incongruence")
+
+ggsave("wIncongruence.png", width = 10, height=10)
 
 # unweighted
 df %>% 
@@ -255,8 +281,10 @@ df %>%
   geom_errorbar(aes(ymin=Freq-se,ymax=Freq+se),width=.2) +
   facet_wrap(~Language, labeller=labeller(Language = labels)) +
   my_theme() + 
-  ggtitle("Speech-gesture incongruence") +
+  #ggtitle("Speech-gesture incongruence") +
   ylab("mean proportions") +
   xlab("Incongruence")
+
+ggsave("Incongruence.png", width = 10, height=10)
 
 
