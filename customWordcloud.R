@@ -2,9 +2,9 @@
 
 library(wordcloud2)
 library(viridis)
+library(plyr)
 library(data.table)
 
-setwd("/Users/peerchristensen/Desktop/Data")
 df_full= read.csv2("all_data_CLEAN.csv",na.strings = c(""),stringsAsFactors = F)
 
 df=df_full[,-c(1,3,13,14,15,16,17,18)]
@@ -20,11 +20,8 @@ wordsMeta=unique(wordsMeta)
 wordsMeta=wordsMeta[order(-Freq)]
 wordsMeta=data.frame(wordsMeta[,c(2,4)])
 wordsMeta=wordsMeta[1:44,]
-setwd("/Users/peerchristensen/Desktop")
 
 cols=viridis(100, alpha = 1, begin = 0, end = 1, direction = 1)
-wordcloud2(demoFreq,figPath = "gesture1.png",size=2)
-wordcloud2(wordsLem,figPath = "gkey.png",color=cols,size=5,maxRotation = pi/3)
 
 wordsPoS=df[,c(6,11)]
 wordsPoS$PoS=revalue(wordsPoS$Words, c("ljusare"="Adj-C","lägre"="Adj-C",
@@ -62,4 +59,18 @@ wordsLem[,Freq := .N, by=Words]
 wordsLem=unique(wordsLem)
 wordsLem=wordsLem[order(-Freq)]
 wordsLem=data.frame(wordsLem[,c(3,4)])
+
+wordcloud(words = wordsLem$Lem, freq = wordsLem$Freq, min.freq = 1,
+          max.words=100, random.order=FALSE, rot.per=0.35, 
+          colors=viridis_pal(option="B", begin = .1, end =.8)(10))
+            #brewer.pal(8, "Dark2")
+ggsave("cloud.png")
+
+wordcloud2(wordsLem,figPath = "gesture1.png",size=3,
+           color=viridis_pal(option="B", begin = .1, end =.8)(10))
+
+wordcloud2(wordsLem,figPath = "gkey.png",
+           color=viridis_pal(option="B", begin = .1, end =.8)(10),
+            size=5,maxRotation = pi/3)
+
 

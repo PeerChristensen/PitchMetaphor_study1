@@ -4,7 +4,6 @@
 library(plyr)
 
 #READ AND CLEAN DATA
-setwd("/Users/peerchristensen/Desktop")
 df= read.csv2("all_data.csv",na.strings = c(""))
 df=df[!is.na(df$Trial) & !is.na(df$Part) & 
         !is.na(df$Words) &!is.na(df$Gesture),]
