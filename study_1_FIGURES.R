@@ -8,6 +8,7 @@ library(viridis)
 library(Hmisc)
 library(tidytext)
 library(jtools)
+library(ggthemes)
 
 my_theme <- function() {
   theme_apa() +
@@ -109,7 +110,7 @@ df$Metaphor <- factor(df$Metaphor,
 # WEIGHTED
 df %>%
   group_by(Language, Participant, Metaphor) %>%
-  summarise(n=n()) %>%
+  dplyr::summarise(n=n()) %>%
   complete(Metaphor, nesting(Participant), fill = list(n = 0)) %>%
   mutate(freq = n / sum(n), wt=sum(n)) %>%
   plyr::ddply(c("Language","Metaphor"),summarise,
@@ -414,13 +415,14 @@ labels <- c(Swedish = "Swedish\nHEIGHT", Turkish = "Turkisk\nTHICKNESS")
 
 # weighted
 df %>% 
-  filter(Gesture == "YES", !is.na(Coexpress_full), Language == "Swedish" & Metaphor == "Height" |
+  filter(Gesture == "YES", !is.na(Coexpress_full), Coexpress_full != "Mixed", Language == "Swedish" & Metaphor == "Height" |
            Language == "Turkish" & Metaphor == "Thickness") %>%
   group_by(Language, Participant, Coexpress_full) %>%
   summarise(n = n()) %>%
   complete(Coexpress_full, nesting(Participant), fill = list(n = 0)) %>%
   mutate(freq = n / sum(n), wt=sum(n)) %>%
   plyr::ddply(c("Language","Coexpress_full"),summarise,
+              n=sum(n),
               Freq = weighted.mean(freq,wt),
               se = sqrt(wtd.var(freq,wt))/sqrt(length(unique(Participant)))) %>%
   filter(Coexpress_full == "Yes") %>%

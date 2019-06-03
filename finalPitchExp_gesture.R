@@ -7,7 +7,7 @@ library(viridis)
 library(Hmisc)
 library(plyr)
 
-setwd("/Users/peerchristensen/Desktop")
+#setwd("/Users/peerchristensen/Desktop")
 df_full= read.csv2("all_data_CLEAN.csv",na.strings = c(""),stringsAsFactors = F)
 df_fullG= read.csv2("all_gesture_data_CLEAN.csv",na.strings = c(""),stringsAsFactors = F)
 #remove some columns

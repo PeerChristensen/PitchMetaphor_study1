@@ -45,8 +45,9 @@ df$Language = factor(df$Language)
 df = df %>% select(-Begin, -Trial)
 df=droplevels(df)
 
-df = df %>% filter(Gesture == "1", Language == "Swedish" & Metaphor == "Height" |
+df = df %>% filter(Gesture == "1", Language == "Swedish" |
                      Language == "Turkish" & Metaphor == "Thickness")
+#df = df %>% filter(Gesture == "1", Language == "Swedish" & Metaphor == "Brightness")
 
 
 # create variable for convergence
@@ -130,11 +131,37 @@ df %>%
   scale_fill_viridis_d(option= "B",begin = .2, end = .7) +
   #ggtitle("Speech-gesture incongruence") +
   ylab("weighted mean proportions") +
-  xlab("Convergence") +
   scale_x_discrete("Language",labels=labels)
 
 ggsave("wVertical.png", width = 10, height=10)
 
+# VERTICALITY WITH BRIGHTNESS
+
+labels2 <- c(Brightness = "Swedish\nBRIGHTNESS", Height = "Swedish\nHEIGHT", Thickness = "Turkisk\nTHICKNESS")
+
+df %>%
+  filter(!is.na(Vert)) %>%
+  group_by(Language, Metaphor, Participant, Vert) %>%
+  summarise(n = n()) %>%
+  complete(Vert, nesting(Participant), fill = list(n = 0)) %>%
+  mutate(freq = n / sum(n), wt=sum(n)) %>%
+  group_by(Language, Metaphor, Vert) %>%
+  summarise(Freq = weighted.mean(freq,wt),
+            se = sqrt(wtd.var(freq,wt))/sqrt(length(unique(Participant)))) %>%
+  filter(Vert == "Yes") %>%
+  ggplot(aes(x=Metaphor,y=Freq)) +
+  geom_bar(stat="identity", width = .75,
+           fill= viridis_pal(option = "B", begin = .2, end = .7, direction = -1)(1)) +
+  geom_errorbar(aes(ymin=Freq-se,ymax=Freq+se),width=.2) +
+  #facet_wrap(~Language, labeller=labeller(Language = labels)) +
+  my_theme() + 
+  coord_cartesian(ylim=c(0,1)) +
+  scale_fill_viridis_d(option= "B",begin = .2, end = .7) +
+  #ggtitle("Speech-gesture incongruence") +
+  ylab("weighted mean proportions") +
+  scale_x_discrete("Language and Metaphor",labels=labels2)
+
+ggsave("wVerticalWBright.png", width = 10, height=10)
 ######################################################
 # Point plots
 
