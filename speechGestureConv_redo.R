@@ -97,14 +97,14 @@ df$Converge <- factor(df$Converge,
 
 df %>%
   group_by(Language, Participant, Converge) %>%
-  summarise(n = n()) %>%
+  dplyr::summarise(n = n()) %>%
   complete(Converge, nesting(Participant), fill = list(n = 0)) %>%
-  mutate(freq = n / sum(n), wt=sum(n)) %>%
+  dplyr::mutate(freq = n / sum(n), wt=sum(n)) %>%
   plyr::ddply(c("Language","Converge"),summarise,
               n=sum(n),
               Freq = weighted.mean(freq,wt),
               se = sqrt(wtd.var(freq,wt))/sqrt(length(unique(Participant)))) %>%
-  #filter(Converge == "Yes") %>%
+  filter(Converge == "Yes") %>%
   ggplot(aes(x=Converge,y=Freq,fill=Language)) +
   geom_bar(stat="identity", width = .75,position="dodge")+
   scale_fill_viridis_d(option = "B", begin = .2, end = .7, direction = -1) +

@@ -16,11 +16,11 @@ my_theme <- function() {
     theme(plot.background = element_blank()) +
     theme(panel.border = element_blank()) +                       # facet border
     theme(strip.background = element_blank()) +                  # facet title background
-    theme(strip.text.x = element_text(size = 20)) +
-    theme(axis.title.x = element_text(size = 20,margin = margin(t = 25, r = 0, b = 0, l = 0))) +
-    theme(axis.title.y = element_text(size = 20,margin = margin(t = 0, r = 25, b = 0, l = 0))) +
+    theme(strip.text.x = element_text(size = 22)) +
+    theme(axis.title.x = element_text(size = 24,margin = margin(t = 25, r = 0, b = 0, l = 0))) +
+    theme(axis.title.y = element_text(size = 24,margin = margin(t = 0, r = 25, b = 0, l = 0))) +
     theme(axis.text.y = element_text(size = 20)) +
-    theme(axis.text.x =  element_text(size = 20)) +
+    theme(axis.text.x =  element_text(size = 22)) +
     theme(panel.spacing = unit(2, "lines")) +
     theme(plot.margin = unit(c(.5, .5, .5, .5), "cm"))
   }
@@ -65,7 +65,7 @@ df$incongruence=factor(df$incongruence)
 
 # Combine co-expressivity and incongruence
 # 4 levels: YES, NO, MIXED, NEUTRAL
-df = df %>% mutate(Coexpress_full = factor(case_when(Coexpress == "NO" & incongruence == "NO" ~ "Neutral",
+df = df %>% dplyr::mutate(Coexpress_full = factor(case_when(Coexpress == "NO" & incongruence == "NO" ~ "Neutral",
                                           Coexpress == "NO" & incongruence == "YES" ~ "No",
                                           Coexpress == "YES" & incongruence == "NO" ~ "Yes",
                                           incongruence == "MIXED" ~ "Mixed")))
@@ -85,7 +85,7 @@ word_counts = df %>%
   top_n(5,n) %>%
   ungroup() %>%
   arrange(Language, -n) %>%
-  dplyr::mutate(order = rev(row_number())) 
+  dplyr::dplyr::mutate(order = rev(row_number())) 
 
 word_counts %>%
   ggplot(aes(x = order, y = n, fill = Metaphor)) + 
@@ -112,7 +112,7 @@ df %>%
   group_by(Language, Participant, Metaphor) %>%
   dplyr::summarise(n=n()) %>%
   complete(Metaphor, nesting(Participant), fill = list(n = 0)) %>%
-  mutate(freq = n / sum(n), wt=sum(n)) %>%
+  dplyr::mutate(freq = n / sum(n), wt=sum(n)) %>%
   plyr::ddply(c("Language","Metaphor"),summarise,
         Freq = weighted.mean(freq,wt),
         se = sqrt(wtd.var(freq,wt))/sqrt(length(unique(Participant)))) %>%
@@ -132,9 +132,9 @@ ggsave("wSpeech.png", width = 10, height=10)
 #UNWEIGHTED   
 df %>%
   group_by(Language, Participant, Metaphor) %>%
-  summarise(n=n()) %>%
+  dplyr::summarise(n=n()) %>%
   complete(Metaphor, nesting(Participant), fill = list(n = 0)) %>%
-  mutate(freq = n / sum(n)) %>% 
+  dplyr::mutate(freq = n / sum(n)) %>% 
   plyr::ddply(c("Language","Metaphor"),summarise,
         Freq = mean(freq),
         se = sqrt(sd(freq))/sqrt(length(unique(Participant)))) %>% 
@@ -161,9 +161,9 @@ df %>%
   filter(Gesture != "NA",Language == "Swedish" & Metaphor == "Height" |
            Language == "Turkish" & Metaphor == "Thickness") %>%
   group_by(Language, Participant, Gesture) %>%
-  summarise(n = n()) %>%
+  dplyr::summarise(n = n()) %>%
   complete(Gesture, nesting(Participant), fill = list(n = 0)) %>%
-  mutate(freq = n / sum(n), wt=sum(n)) %>%
+  dplyr::mutate(freq = n / sum(n), wt=sum(n)) %>%
   plyr::ddply(c("Language","Gesture"),summarise,
               Freq = weighted.mean(freq,wt),
               se = sqrt(wtd.var(freq,wt))/sqrt(length(unique(Participant)))) %>%
@@ -184,9 +184,9 @@ df %>%
   filter(Gesture != "NA",Language == "Swedish" & Metaphor == "Height" |
            Language == "Turkish" & Metaphor == "Thickness") %>%
   group_by(Language, Participant, Gesture) %>%
-  summarise(n = n()) %>%
+  dplyr::summarise(n = n()) %>%
   complete(Gesture, nesting(Participant), fill = list(n = 0)) %>%
-  mutate(freq = n / sum(n)) %>% 
+  dplyr::mutate(freq = n / sum(n)) %>% 
   plyr::ddply(c("Language","Gesture"),summarise,
               Freq = mean(freq),
               se = sqrt(sd(freq))/sqrt(length(unique(Participant)))) %>%
@@ -211,9 +211,9 @@ df %>%
   filter(Gesture == "YES", !is.na(Coexpress), Language == "Swedish" & Metaphor == "Height" |
            Language == "Turkish" & Metaphor == "Thickness") %>%
   group_by(Language, Participant, Coexpress) %>%
-  summarise(n = n()) %>%
+  dplyr::summarise(n = n()) %>%
   complete(Coexpress, nesting(Participant), fill = list(n = 0)) %>%
-  mutate(freq = n / sum(n), wt=sum(n)) %>%
+  dplyr::mutate(freq = n / sum(n), wt=sum(n)) %>%
   plyr::ddply(c("Language","Coexpress"),summarise,
               Freq = weighted.mean(freq,wt),
               se = sqrt(wtd.var(freq,wt))/sqrt(length(unique(Participant)))) %>%
@@ -234,9 +234,9 @@ df %>%
   filter(Gesture == "YES", !is.na(Coexpress), Language == "Swedish" & Metaphor == "Height" |
            Language == "Turkish" & Metaphor == "Thickness") %>%
   group_by(Language, Participant, Coexpress) %>%
-  summarise(n = n()) %>%
+  dplyr::summarise(n = n()) %>%
   complete(Coexpress, nesting(Participant), fill = list(n = 0)) %>%
-  mutate(freq = n / sum(n)) %>% 
+  dplyr::mutate(freq = n / sum(n)) %>% 
   plyr::ddply(c("Language","Coexpress"),summarise,
               Freq = mean(freq),
               se = sqrt(sd(freq))/sqrt(length(unique(Participant)))) %>%
@@ -264,9 +264,9 @@ df %>%
   filter(Gesture == "YES", !is.na(incongruence), Language == "Swedish" & Metaphor == "Height" |
            Language == "Turkish" & Metaphor == "Thickness") %>%
   group_by(Language, Participant, incongruence) %>%
-  summarise(n = n()) %>%
+  dplyr::summarise(n = n()) %>%
   complete(incongruence, nesting(Participant), fill = list(n = 0)) %>%
-  mutate(freq = n / sum(n), wt=sum(n)) %>%
+  dplyr::mutate(freq = n / sum(n), wt=sum(n)) %>%
   plyr::ddply(c("Language","incongruence"),summarise,
               Freq = weighted.mean(freq,wt),
               se = sqrt(wtd.var(freq,wt))/sqrt(length(unique(Participant)))) %>%
@@ -288,9 +288,9 @@ df %>%
   filter(Gesture == "YES", !is.na(incongruence), Language == "Swedish" & Metaphor == "Height" |
            Language == "Turkish" & Metaphor == "Thickness") %>%
   group_by(Language, Participant, incongruence) %>%
-  summarise(n = n()) %>%
+  dplyr::summarise(n = n()) %>%
   complete(incongruence, nesting(Participant), fill = list(n = 0)) %>%
-  mutate(freq = n / sum(n)) %>% 
+  dplyr::mutate(freq = n / sum(n)) %>% 
   plyr::ddply(c("Language","incongruence"),summarise,
               Freq = mean(freq),
               se = sqrt(sd(freq))/sqrt(length(unique(Participant)))) %>%
@@ -316,11 +316,11 @@ df %>%
   filter(Gesture == "YES",!is.na(Coexpress_full), Language == "Swedish" & Metaphor == "Height" |
            Language == "Turkish" & Metaphor == "Thickness") %>%
   group_by(Language, Participant, Coexpress_full) %>%
-  summarise(n = n()) %>%
+  dplyr::summarise(n = n()) %>%
   complete(Coexpress_full, nesting(Participant), fill = list(n = 0)) %>%
-  mutate(freq = n / sum(n), wt=sum(n)) %>%
+  dplyr::mutate(freq = n / sum(n), wt=sum(n)) %>%
   group_by(Language, Coexpress_full) %>%
-  summarise(Freq = weighted.mean(freq,wt),
+  dplyr::summarise(Freq = weighted.mean(freq,wt),
             se = sqrt(wtd.var(freq,wt))/sqrt(length(unique(Participant)))) %>%
   #plyr::ddply(c("Language","Coexpress_full"),summarise,
   #            Freq = weighted.mean(freq,wt),
@@ -349,9 +349,9 @@ df %>%
   filter(Gesture == "YES", !is.na(Coexpress_full), Language == "Swedish" & Metaphor == "Height" |
            Language == "Turkish" & Metaphor == "Thickness") %>%
   group_by(Language, Participant, Coexpress_full) %>%
-  summarise(n = n()) %>%
+  dplyr::summarise(n = n()) %>%
   complete(Coexpress_full, nesting(Participant), fill = list(n = 0)) %>%
-  mutate(freq = n / sum(n), wt=sum(n)) %>%
+  dplyr::mutate(freq = n / sum(n), wt=sum(n)) %>%
   plyr::ddply(c("Language","Coexpress_full"),summarise,
               Freq = weighted.mean(freq,wt),
               se = sqrt(wtd.var(freq,wt))/sqrt(length(unique(Participant)))) %>%
@@ -370,9 +370,9 @@ df %>%
   filter(Gesture == "YES", !is.na(Coexpress_full), Language == "Swedish" & Metaphor == "Height" |
            Language == "Turkish" & Metaphor == "Thickness") %>%
   group_by(Language, Participant, Coexpress_full) %>%
-  summarise(n = n()) %>%
+  dplyr::summarise(n = n()) %>%
   complete(Coexpress_full, nesting(Participant), fill = list(n = 0)) %>%
-  mutate(freq = n / sum(n)) %>% 
+  dplyr::mutate(freq = n / sum(n)) %>% 
   plyr::ddply(c("Language","Coexpress_full"),summarise,
               Freq = mean(freq),
               se = sqrt(sd(freq))/sqrt(length(unique(Participant)))) %>%
@@ -390,7 +390,7 @@ df %>%
 labels <- c(Swedish = "Swedish\nHEIGHT", Turkish = "Turkisk\nTHICKNESS")
 # Verticality
 df = df %>% 
-  mutate(Vert = factor(case_when(
+  dplyr::mutate(Vert = factor(case_when(
     Dimension == "vert" & Handshape == "flat H" ~ "YES",
     TRUE ~ "other")))
   
@@ -398,11 +398,11 @@ df %>%
   filter(Gesture == "YES", Language == "Swedish" & Metaphor == "Height" |
            Language == "Turkish" & Metaphor == "Thickness") %>%
   group_by(Language, Participant, Vert) %>%
-  summarise(n = n()) %>%
+  dplyr::summarise(n = n()) %>%
   complete(Vert, nesting(Participant), fill = list(n = 0)) %>%
-  mutate(freq = n / sum(n), wt=sum(n)) %>%
+  dplyr::mutate(freq = n / sum(n), wt=sum(n)) %>%
   group_by(Language,Vert) %>%
-  summarise(Freq = weighted.mean(freq,wt),
+  dplyr::summarise(Freq = weighted.mean(freq,wt),
             se = sqrt(wtd.var(freq,wt))/sqrt(length(unique(Participant)))) %>%
   filter(Vert=="YES")
 
@@ -418,9 +418,9 @@ df %>%
   filter(Gesture == "YES", !is.na(Coexpress_full), Coexpress_full != "Mixed", Language == "Swedish" & Metaphor == "Height" |
            Language == "Turkish" & Metaphor == "Thickness") %>%
   group_by(Language, Participant, Coexpress_full) %>%
-  summarise(n = n()) %>%
+  dplyr::summarise(n = n()) %>%
   complete(Coexpress_full, nesting(Participant), fill = list(n = 0)) %>%
-  mutate(freq = n / sum(n), wt=sum(n)) %>%
+  dplyr::mutate(freq = n / sum(n), wt=sum(n)) %>%
   plyr::ddply(c("Language","Coexpress_full"),summarise,
               n=sum(n),
               Freq = weighted.mean(freq,wt),
@@ -447,9 +447,9 @@ df %>%
   filter(Gesture == "YES", !is.na(Coexpress), Language == "Swedish" & Metaphor == "Height" |
            Language == "Turkish" & Metaphor == "Thickness") %>%
   group_by(Language, Participant, incongruence) %>%
-  summarise(n = n()) %>%
+  dplyr::summarise(n = n()) %>%
   complete(incongruence, nesting(Participant), fill = list(n = 0)) %>%
-  mutate(freq = n / sum(n), wt=sum(n)) %>%
+  dplyr::mutate(freq = n / sum(n), wt=sum(n)) %>%
   plyr::ddply(c("Language","incongruence"),summarise,
               Freq = weighted.mean(freq,wt),
               se = sqrt(wtd.var(freq,wt))/sqrt(length(unique(Participant)))) %>%
@@ -474,7 +474,7 @@ df %>%
   filter(Gesture == "YES", !is.na(Coexpress_full), Language == "Swedish" & Metaphor == "Height" |
            Language == "Turkish" & Metaphor == "Thickness") %>%
   group_by(Language, Participant, Coexpress_full) %>%
-  summarise(n = n()) %>% group_by(Language,Coexpress_full) %>% summarise(sum(n))
+  dplyr::summarise(n = n()) %>% group_by(Language,Coexpress_full) %>% dplyr::summarise(sum(n))
 
 swe_conv=tibble(a=rep(1,216),b=rep(1,216))
 swe_conv %>%

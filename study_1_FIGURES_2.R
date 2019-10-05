@@ -18,11 +18,11 @@ my_theme <- function() {
     theme(plot.background = element_blank()) +
     theme(panel.border = element_blank()) +                       # facet border
     theme(strip.background = element_blank()) +                  # facet title background
-    theme(strip.text.x = element_text(size = 20)) +
-    theme(axis.title.x = element_text(size = 20,margin = margin(t = 25, r = 0, b = 0, l = 0))) +
-    theme(axis.title.y = element_text(size = 20,margin = margin(t = 0, r = 25, b = 0, l = 0))) +
+    theme(strip.text.x = element_text(size = 22)) +
+    theme(axis.title.x = element_text(size = 24,margin = margin(t = 25, r = 0, b = 0, l = 0))) +
+    theme(axis.title.y = element_text(size = 24,margin = margin(t = 0, r = 25, b = 0, l = 0))) +
     theme(axis.text.y = element_text(size = 20)) +
-    theme(axis.text.x =  element_text(size = 20)) +
+    theme(axis.text.x =  element_text(size = 22)) +
     theme(panel.spacing = unit(2, "lines")) +
     theme(plot.margin = unit(c(.5, .5, .5, .5), "cm"))
 }
@@ -82,23 +82,52 @@ table(df$Language)
 #######################################
 # CONVERGENCE
 
+### new june 2019 ###
+# WEIGHTED
+labels <- c(Swedish = "Swedish\nHeight", Turkish = "Turkisk\nThickness")
+
 df %>% 
-  filter(!is.na(Converge)) %>%
+  dplyr::filter(!is.na(Converge)) %>%
   group_by(Language, Participant, Converge) %>%
-  summarise(n = n()) %>%
+  dplyr::summarise(n = n()) %>%
   complete(Converge, nesting(Participant), fill = list(n = 0)) %>%
-  mutate(freq = n / sum(n), wt=sum(n)) %>%
+  dplyr::mutate(freq = n / sum(n), wt=sum(n)) %>%
   group_by(Language, Converge) %>%
-  summarise(Freq = weighted.mean(freq,wt),
+  dplyr::summarise(Freq = weighted.mean(freq,wt),
+                   se = sqrt(wtd.var(freq,wt))/sqrt(length(unique(Participant)))) %>%
+  dplyr::filter(Converge == "Yes")  %>%
+  ggplot(aes(x=Language,y=Freq)) +
+  geom_bar(stat="identity", fill = viridis_pal(option = "B", begin = .2, end = .7, direction = -1)(1)) +
+  geom_errorbar(aes(ymin=Freq-se,ymax=Freq+se),width=.2) +
+  facet_wrap(~Language, scales = "free_x") +
+  my_theme() + 
+  theme(strip.text.x = element_blank()) +
+  coord_cartesian(ylim=c(0,1)) +
+  scale_x_discrete(breaks = unique(df$Language), labels= labels) +
+  #ggtitle("Speech metaphors") +
+  ylab("Weighted mean proportions") +
+  xlab("Language and metaphor")
+
+ggsave("wConvergence.jpg",dpi=600)
+#####################
+df %>% 
+  dplyr::filter(!is.na(Converge)) %>%
+  group_by(Language, Participant, Converge) %>%
+  dplyr::summarise(n = n()) %>%
+  complete(Converge, nesting(Participant), fill = list(n = 0)) %>%
+  dplyr::mutate(freq = n / sum(n), wt=sum(n)) %>%
+  group_by(Language, Converge) %>%
+  dplyr::summarise(Freq = weighted.mean(freq,wt),
             se = sqrt(wtd.var(freq,wt))/sqrt(length(unique(Participant)))) %>%
+  dplyr::filter(Converge == "Yes") %>%
   ggplot(aes(x=Converge,y=Freq, fill = Language)) +
   geom_bar(position=position_dodge(.9),stat="identity") +
   geom_errorbar(aes(ymin=Freq-se,ymax=Freq+se),width=.2,position=position_dodge(.9)) +
-  #facet_wrap(~Language, labeller=labeller(Language = labels)) +
+  facet_wrap(~Language, labeller=labeller(Language = labels)) +
   my_theme() + 
-  theme(legend.text = element_text(size=20),
-        legend.key.width = unit(2.5, "lines"),
-        legend.key.height = unit(2.5, "lines")) +
+ # theme(legend.text = element_text(size=20),
+#        legend.key.width = unit(2.5, "lines"),
+#        legend.key.height = unit(2.5, "lines")) +
   coord_cartesian(ylim=c(0,1)) +
   scale_fill_viridis_d(option= "B",begin = .2, end = .7) +
   #ggtitle("Speech-gesture incongruence") +
@@ -112,15 +141,15 @@ ggsave("wConvergenceFull.png", width = 10, height=10)
 # Verticality
 
 df %>%
-  filter(!is.na(Vert)) %>%
+  dplyr::filter(!is.na(Vert)) %>%
   group_by(Language, Participant, Vert) %>%
-  summarise(n = n()) %>%
+  dplyr::summarise(n = n()) %>%
   complete(Vert, nesting(Participant), fill = list(n = 0)) %>%
-  mutate(freq = n / sum(n), wt=sum(n)) %>%
+  dplyr::mutate(freq = n / sum(n), wt=sum(n)) %>%
   group_by(Language, Vert) %>%
-  summarise(Freq = weighted.mean(freq,wt),
+  dplyr::summarise(Freq = weighted.mean(freq,wt),
             se = sqrt(wtd.var(freq,wt))/sqrt(length(unique(Participant)))) %>%
-  filter(Vert == "Yes") %>%
+  dplyr::filter(Vert == "Yes") %>%
   ggplot(aes(x=Language,y=Freq)) +
   geom_bar(stat="identity", width = .75,
                       fill= viridis_pal(option = "B", begin = .2, end = .7, direction = -1)(1)) +
