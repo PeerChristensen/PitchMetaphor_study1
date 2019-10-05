@@ -81,7 +81,7 @@ df %>%
               se = sqrt(wtd.var(freq,wt))/sqrt(length(unique(Participant)))) %>%
   filter(Freq > 0.02) %>%
   ggplot(aes(x=Metaphor,y=Freq)) +
-  geom_bar(stat="identity", fill = viridis_pal(option = "B", begin = .2, end = .7, direction = -1)(1),width=.8) +
+  geom_bar(stat="identity", fill = tableau_color_pal()(1),width=.8) +
   geom_errorbar(aes(ymin=Freq-se,ymax=Freq+se),width=.2,size=.5) +
   facet_wrap(~Language, scales = "free_x") +
   my_theme() + 
@@ -90,7 +90,7 @@ df %>%
   xlab("Metaphors")
 ggsave("figure1.pdf",device=cairo_pdf)
 
-
+#fill = viridis_pal(option = "B", begin = .2, end = .7, direction = -1)(1)
 ######################################
 #### Figure 2: SPEECH & GESTURE ######
 ######################################
@@ -164,10 +164,16 @@ df %>%
          legend.key.height = unit(1.5, "lines")) +
   theme(legend.position = "top") +
   coord_cartesian(ylim=c(0,1)) +
-  scale_fill_viridis_d(option= "B",begin = .2, end = .7) +
+  scale_fill_tableau() +
+  #scale_fill_viridis_d(option= "B",begin = .2, end = .7) +
   #ggtitle("Speech-gesture incongruence") +
   ylab("Weighted Mean Proportions") +
   xlab("Speech-Gesture Relationship")
 
 ggsave("figure2.pdf",device=cairo_pdf)
 
+########################################
+library(lme4)
+
+fit1 <- glmer(Convergence ~ Language + (1|Participant),family="binomial",data=df)
+summary(fit1)
