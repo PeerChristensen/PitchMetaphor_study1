@@ -24,6 +24,7 @@ library(jtools)
 library(ggthemes)
 library(ggpubr)
 library(extrafont)
+library(colorblindr)
 
 helv_font <- "HelveticaNeueLT Std Cn"
 
@@ -54,14 +55,10 @@ df <- read_csv2("all_data_CLEAN.csv") %>%
                    Word     = Words, 
                    Gesture, 
                    Dimension,
-                   Handshape)
+                   Handshape) %>%
+  mutate_if(is.character,as.factor)
 
 df <- df[!duplicated(df), ]
-
-df$Word     = factor(df$Word)
-df$Metaphor = factor(df$Metaphor)
-df$Gesture  = factor(df$Gesture)
-df$Language = factor(df$Language)
 
 
 ######################################
@@ -78,17 +75,22 @@ df %>%
   dplyr::mutate(freq = n / sum(n), wt=sum(n)) %>%
   plyr::ddply(c("Language","Metaphor"),summarise,
               Freq = weighted.mean(freq,wt),
-              se = sqrt(wtd.var(freq,wt))/sqrt(length(unique(Participant)))) %>%
+              se = sqrt(wtd.var(freq,wt))/sqrt(length(unique(Participant))),
+              sd = sqrt(wtd.var(freq,wt)),
+              n = n()) %>%
+  mutate(ci_lower = Freq - qt(1 - (0.05 / 2),  n - 1) * se,   
+         ci_upper = Freq + qt(1 - (0.05 / 2),  n - 1) * se) %>%    
   filter(Freq > 0.02) %>%
   ggplot(aes(x=Metaphor,y=Freq)) +
   geom_bar(stat="identity", fill = tableau_color_pal()(1),width=.8) +
-  geom_errorbar(aes(ymin=Freq-se,ymax=Freq+se),width=.2,size=.5) +
+  #geom_errorbar(aes(ymin=Freq-se,ymax=Freq+se),width=.2,size=.5) +
+  geom_errorbar(aes(ymin=ci_lower,ymax=ci_upper),width=.2,size=.5) +
   facet_wrap(~Language, scales = "free_x") +
   my_theme() + 
   coord_cartesian(ylim=c(0,1)) +
   ylab("Weighted Mean Proportions") +
   xlab("Metaphors")
-ggsave("figure1.pdf",device=cairo_pdf)
+ggsave("figure1.pdf", device=cairo_pdf)
 
 #fill = viridis_pal(option = "B", begin = .2, end = .7, direction = -1)(1)
 ######################################
@@ -152,10 +154,15 @@ df %>%
   dplyr::mutate(freq = n / sum(n), wt=sum(n)) %>%
   group_by(Language, Convergence_full) %>%
   dplyr::summarise(Freq = weighted.mean(freq,wt),
-                   se = sqrt(wtd.var(freq,wt))/sqrt(length(unique(Participant)))) %>%
+                   se = sqrt(wtd.var(freq,wt))/sqrt(length(unique(Participant))),
+                   sd = sqrt(wtd.var(freq,wt)),
+                   n  = n()) %>%
+  mutate(ci_lower = Freq - qt(1 - (0.05 / 2),  n - 1) * se,   
+         ci_upper = Freq + qt(1 - (0.05 / 2),  n - 1) * se) %>%    
   ggplot(aes(x=Convergence_full,y=Freq, fill = Language)) +
   geom_bar(position=position_dodge(.9),stat="identity",width=.8) +
-  geom_errorbar(aes(ymin=Freq-se,ymax=Freq+se),width=.2,position=position_dodge(.9),size=.5) +
+  #geom_errorbar(aes(ymin=Freq-se,ymax=Freq+se),width=.2,position=position_dodge(.9),size=.5) +
+  geom_errorbar(aes(ymin=ci_lower,ymax=ci_upper),width=.2,size=.5,position=position_dodge(.9)) +
   #facet_wrap(~Language, labeller=labeller(Language = labels)) +
   my_theme() + 
    theme(legend.text = element_text(size=9),
@@ -171,6 +178,9 @@ df %>%
   xlab("Speech-Gesture Relationship")
 
 ggsave("figure2.pdf",device=cairo_pdf)
+
+# colorblindness
+# cvd_grid()
 
 ########################################
 library(lme4)
