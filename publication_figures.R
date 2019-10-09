@@ -103,7 +103,7 @@ df <-
     
 fit1 <- glmer(LangSpec ~ Language + (1|Participant),data = df, family = "binomial")
 summary(fit1)
-
+r.squaredGLMM(fit1)
 
 #fill = viridis_pal(option = "B", begin = .2, end = .7, direction = -1)(1)
 ######################################
@@ -197,6 +197,6 @@ ggsave("figure2.pdf",device=cairo_pdf)
 
 ########################################
 
-fit2 <- glmer(Convergence ~ Language + (1|Participant),family="binomial",data=df)
+fit2 <- glmer(Convergence_full ~ Language + (1|Participant),family="binomial",data=df)
 summary(fit2)
-
+r.squaredGLMM(fit2)
