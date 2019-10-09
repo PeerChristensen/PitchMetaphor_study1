@@ -25,6 +25,7 @@ library(ggthemes)
 library(ggpubr)
 library(extrafont)
 library(colorblindr)
+library(lme4)
 
 helv_font <- "HelveticaNeueLT Std Cn"
 
@@ -91,6 +92,18 @@ df %>%
   ylab("Weighted Mean Proportions") +
   xlab("Metaphors")
 ggsave("figure1.pdf", device=cairo_pdf)
+
+df <- 
+  df %>%
+  mutate(LangSpec = case_when(
+    Language == "Swedish" & Metaphor == "Height"    ~ 1,
+    Language == "Swedish" & Metaphor != "Height"    ~ 0,
+    Language == "Turkish" & Metaphor == "Thickness" ~ 1,
+    Language == "Turkish" & Metaphor != "Thickness" ~ 0))
+    
+fit1 <- glmer(LangSpec ~ Language + (1|Participant),data = df, family = "binomial")
+summary(fit1)
+
 
 #fill = viridis_pal(option = "B", begin = .2, end = .7, direction = -1)(1)
 ######################################
@@ -183,7 +196,7 @@ ggsave("figure2.pdf",device=cairo_pdf)
 # cvd_grid()
 
 ########################################
-library(lme4)
 
-fit1 <- glmer(Convergence ~ Language + (1|Participant),family="binomial",data=df)
-summary(fit1)
+fit2 <- glmer(Convergence ~ Language + (1|Participant),family="binomial",data=df)
+summary(fit2)
+
